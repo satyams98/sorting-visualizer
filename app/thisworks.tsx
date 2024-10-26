@@ -23,7 +23,7 @@ const SortingVisualizer: React.FC = () => {
     const [array, setArray] = useState<number[]>([]);
     const [sorting, setSorting] = useState<boolean>(false);
     const [algorithm, setAlgorithm] = useState<SortingAlgorithm>('quick');
-    const [arraySize, setArraySize] = useState<number>(50);
+    const [arraySize, setArraySize] = useState<number>(100);
     const [speed, setSpeed] = useState<number>(50);
     const [timeElapsed, setTimeElapsed] = useState<number>(0);
     const [comparisons, setComparisons] = useState<number>(0);
@@ -58,7 +58,7 @@ const SortingVisualizer: React.FC = () => {
     // Bubble Sort
     const bubbleSort = async (): Promise<number[]> => {
         let arr = [...array];
-        const delayTime = 101 - speed;
+        const delayTime = (500 - speed);  // Scale delay with array size
         const startTime = Date.now();
 
         for (let i = 0; i < arr.length; i++) {
@@ -73,68 +73,83 @@ const SortingVisualizer: React.FC = () => {
         return arr;
     };
 
-    // Quick Sort
+    // Quick Sort Implementation
     const quickSort = async (): Promise<number[]> => {
-        const delayTime = 101 - speed;
+        const delayTime = 101 - speed;  // Scale delay with array size
         const startTime = Date.now();
+        let arr = [...array];
 
-        const partition = async (arr: number[], low: number, high: number): Promise<number> => {
+        const partition = async (low: number, high: number): Promise<number> => {
             const pivot = arr[high];
             let i = low - 1;
 
             for (let j = low; j < high; j++) {
                 if (arr[j] < pivot) {
                     i++;
-                    await swap(arr, i, j, delayTime);
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                    setArray([...arr]);
+                    setComparisons(prev => prev + 1);
+                    await delay(delayTime);
                 }
             }
-            await swap(arr, i + 1, high, delayTime);
+
+            [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+            setArray([...arr]);
+            await delay(delayTime);
             return i + 1;
         };
 
-        const quickSortHelper = async (arr: number[], low: number, high: number): Promise<void> => {
+        const quickSortHelper = async (low: number, high: number): Promise<void> => {
             if (low < high) {
-                const pi = await partition(arr, low, high);
-                await quickSortHelper(arr, low, pi - 1);
-                await quickSortHelper(arr, pi + 1, high);
+                const pi = await partition(low, high);
+                await quickSortHelper(low, pi - 1);
+                await quickSortHelper(pi + 1, high);
             }
         };
 
-        let arr = [...array];
-        await quickSortHelper(arr, 0, arr.length - 1);
+        await quickSortHelper(0, arr.length - 1);
         setTimeElapsed(Date.now() - startTime);
         return arr;
     };
 
-    // Heap Sort
+    // Heap Sort Implementation
     const heapSort = async (): Promise<number[]> => {
-        const delayTime = 101 - speed;
+        const delayTime = Math.max(1, (101 - speed) * (arraySize / 100));  // Scale delay with array size
         const startTime = Date.now();
         let arr = [...array];
 
-        const heapify = async (arr: number[], n: number, i: number): Promise<void> => {
+        const heapify = async (n: number, i: number): Promise<void> => {
             let largest = i;
             const left = 2 * i + 1;
             const right = 2 * i + 2;
 
-            if (left < n && arr[left] > arr[largest]) largest = left;
-            if (right < n && arr[right] > arr[largest]) largest = right;
+            if (left < n && arr[left] > arr[largest]) {
+                largest = left;
+            }
+            if (right < n && arr[right] > arr[largest]) {
+                largest = right;
+            }
 
             if (largest !== i) {
-                await swap(arr, i, largest, delayTime);
-                await heapify(arr, n, largest);
+                [arr[i], arr[largest]] = [arr[largest], arr[i]];
+                setArray([...arr]);
+                setComparisons(prev => prev + 1);
+                await delay(delayTime);
+                await heapify(n, largest);
             }
         };
 
         // Build max heap
         for (let i = Math.floor(arr.length / 2) - 1; i >= 0; i--) {
-            await heapify(arr, arr.length, i);
+            await heapify(arr.length, i);
         }
 
         // Extract elements from heap
         for (let i = arr.length - 1; i > 0; i--) {
-            await swap(arr, 0, i, delayTime);
-            await heapify(arr, i, 0);
+            [arr[0], arr[i]] = [arr[i], arr[0]];
+            setArray([...arr]);
+            await delay(delayTime);
+            await heapify(i, 0);
         }
 
         setTimeElapsed(Date.now() - startTime);
@@ -144,7 +159,7 @@ const SortingVisualizer: React.FC = () => {
     // Shell Sort
     const shellSort = async (): Promise<number[]> => {
         let arr = [...array];
-        const delayTime = 101 - speed;
+        const delayTime = Math.max(1, (101 - speed) * (arraySize / 100));  // Scale delay with array size
         const startTime = Date.now();
 
         for (let gap = Math.floor(arr.length / 2); gap > 0; gap = Math.floor(gap / 2)) {
@@ -172,7 +187,7 @@ const SortingVisualizer: React.FC = () => {
     // Counting Sort
     const countingSort = async (): Promise<number[]> => {
         let arr = [...array];
-        const delayTime = 101 - speed;
+        const delayTime = Math.max(1, (101 - speed) * (arraySize / 100));  // Scale delay with array size
         const startTime = Date.now();
 
         const max = Math.max(...arr);
@@ -207,7 +222,7 @@ const SortingVisualizer: React.FC = () => {
     // Selection Sort
     const selectionSort = async (): Promise<number[]> => {
         let arr = [...array];
-        const delayTime = 101 - speed;
+        const delayTime = Math.max(1, (101 - speed) * (arraySize / 100));  // Scale delay with array size
         const startTime = Date.now();
 
         for (let i = 0; i < arr.length; i++) {
@@ -229,7 +244,7 @@ const SortingVisualizer: React.FC = () => {
     // Insertion Sort
     const insertionSort = async (): Promise<number[]> => {
         let arr = [...array];
-        const delayTime = 101 - speed;
+        const delayTime = Math.max(1, (101 - speed) * (arraySize / 100));  // Scale delay with array size
         const startTime = Date.now();
 
         for (let i = 1; i < arr.length; i++) {
@@ -282,7 +297,7 @@ const SortingVisualizer: React.FC = () => {
     };
 
     const mergeSort = async (): Promise<number[]> => {
-        const delayTime = 101 - speed;
+        const delayTime = Math.max(1, (101 - speed) * (arraySize / 100));  // Scale delay with array size
         const startTime = Date.now();
 
         const mergeSortHelper = async (arr: number[], start: number, end: number): Promise<void> => {
@@ -338,8 +353,8 @@ const SortingVisualizer: React.FC = () => {
     const maxElement = Math.max(...array);
 
     return (
-        <div className="p-4 max-w-4xl mx-auto">
-            <Card>
+        <div className="min-h-screen p-4">
+            <Card className="h-full">
                 <CardHeader>
                     <CardTitle>Advanced Sorting Algorithm Visualizer</CardTitle>
                 </CardHeader>
@@ -368,7 +383,7 @@ const SortingVisualizer: React.FC = () => {
                                     value={[arraySize]}
                                     onValueChange={([value]) => setArraySize(value)}
                                     min={10}
-                                    max={100}
+                                    max={500}
                                     step={10}
                                     disabled={sorting}
                                 />
@@ -414,7 +429,7 @@ const SortingVisualizer: React.FC = () => {
                                         height: `${(value / maxElement) * 100}%`,
                                         width: `${100 / arraySize}%`
                                     }}
-                                    className="bg-blue-500 transition-all duration-100"
+                                    className="bg-blue-500 transition-all duration-75"
                                 />
                             ))}
                         </div>
